@@ -8,6 +8,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Entity\User;
 use App\Entity\Article;
 use Faker\Factory;
+use Cocur\Slugify;
 
 class AppFixtures extends Fixture
 {
@@ -56,7 +57,7 @@ class AppFixtures extends Fixture
             $manager->persist($user);
         }
         
-        $faker = Factory::create();
+        /*$faker = Factory::create();
         $articles = [];
 
         
@@ -71,6 +72,30 @@ class AppFixtures extends Fixture
             // It's a reference from Honkai: Star Rail, precisely Aventurine, an enemy boss.
             $publishedAt = $itsAllOrNothing ? $faker->dateTimeBetween($creationDate, 'now') : null;
             $author = $faker->randomElement(['ROLE_ADMIN', 'ROLE_REDAC']);
+        }*/
+
+        $faker = Factory::create();
+        $articles = [];
+
+        for ($i = 0; $i < 160; $i++) {
+            $title = $faker->sentence(rand(3, 6)); // Générer un titre
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title))); // Slugify le titre
+            $createdAt = $faker->dateTimeBetween('-6 months', 'now'); // Date de création
+            $isPublished = $faker->boolean(75); // 75% de chances d'être publié
+
+            $publishedAt = $isPublished ? $faker->dateTimeBetween($createdAt) : null; // Date de publication
+
+            $authorRoles = ['ROLE_ADMIN', 'ROLE_REDAC'];
+            $author = $authorRoles[array_rand($authorRoles)]; // Auteur aléatoire
+
+            $articles[] = [
+                'title' => $title,
+                'titleSlug' => $slug,
+                'content' => $faker->paragraphs(rand(3, 5), true), // Contenu de l'article
+                'createdAt' => $createdAt,
+                'publishedAt' => $publishedAt,
+                'author' => $author,
+            ];
         }
 
         for ($i =0; $i <= 6; $i++){
