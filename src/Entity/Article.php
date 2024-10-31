@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ArticleRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -34,6 +36,17 @@ class Article
 
     #[ORM\Column]
     private ?int $published = null;
+
+    /**
+     * @var Collection<int, SectionTitle>
+     */
+    #[ORM\ManyToMany(targetEntity: SectionTitle::class, inversedBy: 'articles')]
+    private Collection $stuff;
+
+    public function __construct()
+    {
+        $this->stuff = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -120,6 +133,30 @@ class Article
     public function setPublished(int $published): static
     {
         $this->published = $published;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, SectionTitle>
+     */
+    public function getStuff(): Collection
+    {
+        return $this->stuff;
+    }
+
+    public function addStuff(SectionTitle $stuff): static
+    {
+        if (!$this->stuff->contains($stuff)) {
+            $this->stuff->add($stuff);
+        }
+
+        return $this;
+    }
+
+    public function removeStuff(SectionTitle $stuff): static
+    {
+        $this->stuff->removeElement($stuff);
 
         return $this;
     }
