@@ -13,7 +13,7 @@ use Cocur\Slugify;
 class AppFixtures extends Fixture
 {
     private UserPasswordHasherInterface $passwordHasher;
-
+    private $authors = [];
     public function __construct(UserPasswordHasherInterface $passwordHasher){
         $this->passwordHasher = $passwordHasher;
     }
@@ -26,9 +26,10 @@ class AppFixtures extends Fixture
         $pwdHash = $this->passwordHasher->hashPassword($user, 'admin');
         $user->setPassword($pwdHash);
         $user->setFullname('The One and Only Admin');
-        $user->setUniqid('ItsUniqID');
+        $user->setUniqid(uniqid('user_', true));
         $user->setEmail('Admin@gmail.com');
         $user->setActive(true);
+        $this->authors[] = $user;
         $manager->persist($user);
 
         for($i =1; $i <= 5; $i++){
@@ -38,9 +39,10 @@ class AppFixtures extends Fixture
             $pwdHash = $this->passwordHasher->hashPassword($user, 'redac'.$i);
             $user->setPassword($pwdHash);
             $user->setFullname('The Redac'.$i);
-            $user->setUniqid('TheirUniqID');
+            $user->setUniqid(uniqid('user_', true));
             $user->setEmail('redac'.$i.'@gmail.com');
             $user->setActive(true);
+            $this->authors[] = $user;
             $manager->persist($user);
         }
 
@@ -51,34 +53,38 @@ class AppFixtures extends Fixture
             $pwdHash = $this->passwordHasher->hashPassword($user, 'redac'.$i);
             $user->setPassword($pwdHash);
             $user->setFullname('A simple user'.$i);
-            $user->setUniqid('EachUniqID');
+            $user->setUniqid(uniqid('user_', true));
             $user->setEmail('user'.$i.'@gmail.com');
             $user->setActive(true);
             $manager->persist($user);
         }
-        
         $faker = Factory::create();
         $articles = [];
 
         
         for ($i = 0; $i <= 160; $i++){
-            $articles = new Article();
-
+            $article = new Article();
+            $randUser = array_rand($this->authors);
+            $article->setUser($this->authors[$randUser]);
             $title = $faker->title(mt_rand(1,7));
+            $article->setTitle($title);
             $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+            $article->setTitleSlug($slug);
             $text = $faker->text();
+            $article->setText($text);
             $creationDate = $faker->dateTimeBetween('-6 months', 'now');
-            $itsAllOrNothing = (rand(1, 4) <= 3);
+            $article->setArticleDateCreate($creationDate); 
+            $article->setArticleDatePosted($creationDate);
+            $article->setPublished(mt_rand(0,3));     
+            /*
+            $itsAllOrNothing = rand(0, 3);
             // It's a reference from Honkai: Star Rail, precisely Aventurine, an enemy boss.
             $publishedAt = $itsAllOrNothing ? $faker->dateTimeBetween($creationDate, 'now') : null;
-            $author = $faker->randomElement(['ROLE_ADMIN', 'ROLE_REDAC']);
+            */
+            $manager->persist($article);
+        
         }
 
-        for ($i =0; $i <= 6; $i++){
-            $articleTitle = $faker->sentence(6);
-            $slugifiedTitle = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $articleTitle)));
-            $moreText = $faker->text();
-        }
                 $manager->flush();
     }
 }

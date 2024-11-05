@@ -43,6 +43,10 @@ class Article
     #[ORM\ManyToMany(targetEntity: SectionTitle::class, inversedBy: 'articles')]
     private Collection $stuff;
 
+    #[ORM\ManyToOne(inversedBy: 'articles')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
+
     public function __construct()
     {
         $this->stuff = new ArrayCollection();
@@ -157,6 +161,18 @@ class Article
     public function removeStuff(SectionTitle $stuff): static
     {
         $this->stuff->removeElement($stuff);
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }
